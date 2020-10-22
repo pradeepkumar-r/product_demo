@@ -1,0 +1,21 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  sku: MyString
+  description: MyString
+  price: 
+  precision: MyString
+  20,: MyString
+  scale: MyString
+  8: MyString
+  stock: 1
+
+two:
+  sku: MyString
+  description: MyString
+  price: 
+  precision: MyString
+  20,: MyString
+  scale: MyString
+  8: MyString
+  stock: 1
