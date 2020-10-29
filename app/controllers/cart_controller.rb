@@ -18,8 +18,8 @@ class CartController < ApplicationController
         if Cart.exists?(:customer_id => params[:id])
             @cartvalue = Cart.where(customer_id: params[:id]).first
             puts @cartvalue.id;
-            @pddetails=CartItem.where(cart_id: @cartvalue.id)
-            if @pddetails.update(updatepddetails_params)
+            pddetails=CartItem.where(cart_id: @cartvalue.id,item_id: params[:item_id])
+            if pddetails.update_all(quantity: params[:quantity])
                 render json: {status: 'SUCCESS', message:'Updated item', data:pddetails},status: :ok
             else
                 render json: {status: 'ERROR', message:'item not updated', data:pddetails.errors},status: :unprocessable_entity
@@ -61,11 +61,40 @@ class CartController < ApplicationController
         end
        
     end
-    
-    
-    def updatepddetails_params
-        params.permit(:quantity, :item_id)
+
+    def destroy
+        if Cart.exists?(:customer_id => params[:id])
+            @cartvalue = Cart.where(customer_id: params[:id]).first
+            puts @cartvalue.id;
+            pddetails=CartItem.where(cart_id: @cartvalue.id,item_id: params[:item_id])
+            samplepd=CartItem.where(cart_id: @cartvalue.id,item_id: params[:item_id]).to_a;
+            if pddetails.delete_all
+                render json: {status: 'SUCCESS', message:'Deleted  item', data:samplepd},status: :ok
+            else
+                render json: {status: 'ERROR', message:'item not found', data:pddetails.errors},status: :unprocessable_entity
+            end
+        else
+            render json: {status: 'ERROR', message:'Cart Empty'}
+        end
     end
+    
+    def deleteallItems
+        if Cart.exists?(:customer_id => params[:id])
+            @cartvalue = Cart.where(customer_id: params[:id]).first
+            puts @cartvalue.id;
+            pddetails=CartItem.where(cart_id: @cartvalue.id)
+            samplepd=CartItem.where(cart_id: @cartvalue.id).to_a;
+            if pddetails.delete_all
+                render json: {status: 'SUCCESS', message:'Deleted  item', data:samplepd},status: :ok
+            else
+                render json: {status: 'ERROR', message:'item not found', data:pddetails.errors},status: :unprocessable_entity
+            end
+        else
+            render json: {status: 'ERROR', message:'Cart Empty'}
+        end
+    end
+    
+    
 
     def cartitem_params
         params.permit(:item_id, :quantity, :cart_id)
