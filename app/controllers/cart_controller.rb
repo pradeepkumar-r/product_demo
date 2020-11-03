@@ -1,13 +1,34 @@
 class CartController < ApplicationController
     skip_before_action :verify_authenticity_token
-    def show
+    
+    def showItems
         #items = Cart.all;
-        if Cart.exists?(:customer_id => params[:id])
-            @cartvalue = Cart.where(customer_id: params[:id]).first
+        puts "in show items"
+        if Cart.exists?(:customer_id => params[:customer_id])
+            @cartvalue = Cart.where(customer_id: params[:customer_id]).first
             puts @cartvalue.id;
             pddetails=CartItem.where(cart_id: @cartvalue.id).to_a;
             #puts pddetails[1].id
-            render json: {status: 'SUCCESS', message:'Loaded Cart items', data:pddetails},status: :ok
+            number = pddetails.length - 1 ;
+            result = Array.new;
+            hash = {}
+            for i in 0..number
+                pid=pddetails[i].item_id;
+                itemdetail=Item.find(pid);             
+                #hash = { balcon: itemdetail.sku, apple: "fruit" }
+                hash["product_id"]=itemdetail.id
+                hash["item_name"]=itemdetail.sku;
+                hash["quantity"]=pddetails[i].quantity;
+                hash["amount_peritem"]=itemdetail.price;
+                hash["total_amount"] = (pddetails[i].quantity * itemdetail.price).to_s ;
+                result.push(hash.clone);
+                #puts 'result for index ' + i + ' ' + result[i];
+                puts "result for index  #{i} - #{result[0]}"
+                #pddetails[i].sku = itemdetail.sku;
+                #puts "Value of local variable is #{i}"
+            end
+            puts result[0];
+            render json: {status: 'SUCCESS', message:'Loaded Cart items', data:result},status: :ok
         else
             render json: {status: 'ERROR', message:'CART IS EMPTY'}
         end
@@ -62,9 +83,9 @@ class CartController < ApplicationController
        
     end
 
-    def destroy
-        if Cart.exists?(:customer_id => params[:id])
-            @cartvalue = Cart.where(customer_id: params[:id]).first
+    def deleteFromCart
+        if Cart.exists?(:customer_id => params[:customer_id])
+            @cartvalue = Cart.where(customer_id: params[:customer_id]).first
             puts @cartvalue.id;
             pddetails=CartItem.where(cart_id: @cartvalue.id,item_id: params[:item_id])
             samplepd=CartItem.where(cart_id: @cartvalue.id,item_id: params[:item_id]).to_a;
@@ -79,13 +100,16 @@ class CartController < ApplicationController
     end
     
     def deleteallItems
-        if Cart.exists?(:customer_id => params[:id])
-            @cartvalue = Cart.where(customer_id: params[:id]).first
+        if Cart.exists?(:customer_id => params[:customer_id])
+            @cartvalue = Cart.where(customer_id: params[:customer_id]).first
             puts @cartvalue.id;
             pddetails=CartItem.where(cart_id: @cartvalue.id)
             samplepd=CartItem.where(cart_id: @cartvalue.id).to_a;
             if pddetails.delete_all
-                render json: {status: 'SUCCESS', message:'Deleted  item', data:samplepd},status: :ok
+                if Cart.where(customer_id: params[:customer_id]).delete_all
+                    print samplepd;
+                    render json: {status: 'SUCCESS', message:'Deleted  item', data:samplepd},status: :ok
+                end
             else
                 render json: {status: 'ERROR', message:'item not found', data:pddetails.errors},status: :unprocessable_entity
             end
