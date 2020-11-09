@@ -33,6 +33,36 @@ class CartController < ApplicationController
             render json: {status: 'ERROR', message:'CART IS EMPTY'}
         end
     end
+
+    def showCart
+        puts "in show carts"
+        if Cart.exists?(:customer_id => params[:customer_id])
+            p=CartItem.joins(:cart,:item).where('carts.customer_id=1').pluck('cart_items.quantity,items.id,items.sku as item_sku,items.price');
+            
+            number = p.length-1;
+            result = Array.new;
+            hash = {}
+            for i in 0..number
+                #pid=pddetails[i].item_id;
+                #itemdetail=Item.find(pid);             
+                #hash = { balcon: itemdetail.sku, apple: "fruit" }
+                hash["quantity"]=p[i][0];
+                hash["product_id"]=p[i][1];
+                hash["item_name"]=p[i][2];
+                hash["amount_peritem"]=p[i][3];
+                hash["total_amount"] = (p[i][0] * p[i][3]) ;
+                result.push(hash.clone);
+                #puts 'result for index ' + i + ' ' + result[i];
+                puts "result for index  #{i} - #{result[i]}"
+                #pddetails[i].sku = itemdetail.sku;
+                #puts "Value of local variable is #{i}"
+            end
+            
+            render json: {status: 'SUCCESS', message:'Loaded Cart items', data:result},status: :ok
+        else
+            render json: {status: 'ERROR', message:'CART IS EMPTY'}
+        end
+    end
     
     
     def update
